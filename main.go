@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
@@ -15,7 +16,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"go.uber.org/zap"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	kruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -26,10 +27,10 @@ type Config struct {
 		Level    string `env:"LOG_LEVEL, default=info"`
 		Encoding string `env:"LOG_ENCODING, default=json"`
 	}
-	File             string            `env:"FILE, default=/dev/stdin"`
-	AllowFailure     bool              `env:"ALLOW_FAILURE"`
-	LabelSelector    map[string]string `env:"LABEL_SELECTOR"`
-	FolderAnnotation string            `env:"FOLDER_ANNOTATION"`
+	File             string   `env:"FILE, default=/dev/stdin"`
+	AllowFailure     bool     `env:"ALLOW_FAILURE"`
+	LabelSelector    []string `env:"LABEL_SELECTOR"`
+	FolderAnnotation string   `env:"FOLDER_ANNOTATION"`
 }
 
 var (
@@ -41,7 +42,7 @@ func init() {
 	flag.StringVarP(&config.Log.Encoding, "log-encoding", "", "", "Define the log format (default is json) [json,console]")
 	flag.StringVarP(&config.File, "file", "f", "", "Path to input")
 	flag.BoolVar(&config.AllowFailure, "allow-failure", false, "Do not exit > 0 if an error occurred")
-	flag.StringToStringVarP(&config.LabelSelector, "label-selector", "l", nil, "Filter resources by labels")
+	flag.StringSliceVarP(&config.LabelSelector, "label-selector", "l", nil, "Filter resources by labels")
 	flag.StringVarP(&config.FolderAnnotation, "folder-annotation", "a", "", "Name of the folder annotation key")
 }
 
@@ -65,9 +66,8 @@ func main() {
 
 	multidocReader := utilyaml.NewYAMLReader(bufio.NewReader(f))
 
-	selector := &metav1.LabelSelector{
-		MatchLabels: config.LabelSelector,
-	}
+	selector, err := labels.Parse(strings.Join(config.LabelSelector, ","))
+	must(err)
 
 	for {
 		resourceYAML, err := multidocReader.Read()
@@ -95,7 +95,7 @@ func main() {
 		if gvk.Kind == "ConfigMap" && gvk.Group == "" && gvk.Version == "v1" {
 			logger.V(1).Info("validate configmap", "name", obj.Name, "namespace", obj.Namespace)
 
-			if len(config.LabelSelector) > 0 && !matches(obj.Labels, selector) {
+			if len(config.LabelSelector) > 0 && !selector.Matches(labels.Set(obj.Labels)) {
 				logger.V(1).Info("skip resource, not matching label selector", "name", obj.Name, "namespace", obj.Namespace)
 				continue
 			}
@@ -155,27 +155,6 @@ type dashboard struct {
 	Folder string
 	Title  string `json:"title"`
 	Uid    string `json:"uid"`
-}
-
-func matches(labels map[string]string, selector *metav1.LabelSelector) bool {
-	if selector == nil {
-		return true
-	}
-
-	for kS, vS := range selector.MatchLabels {
-		var match bool
-		for kL, vL := range labels {
-			if kS == kL && vS == vL {
-				match = true
-			}
-		}
-
-		if !match {
-			return false
-		}
-	}
-
-	return true
 }
 
 func buildLogger() (logr.Logger, error) {
