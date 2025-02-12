@@ -5,20 +5,20 @@
 class GrafanaDups < Formula
   desc "Extract crossplane resources"
   homepage "https://github.com/DoodleScheduling/grafana-dups"
-  version "0.0.1"
+  version "0.0.2"
 
   on_macos do
     on_intel do
-      url "https://github.com/DoodleScheduling/grafana-dups/releases/download/v0.0.1/grafana-dups_0.0.1_darwin_amd64.tar.gz"
-      sha256 "0cb93e3af409aae2a68a17a34ae785ac3be030979a50d0cc87ab95447e355adc"
+      url "https://github.com/DoodleScheduling/grafana-dups/releases/download/v0.0.2/grafana-dups_0.0.2_darwin_amd64.tar.gz"
+      sha256 "033d3b90e1567fe84fb66af0b76cb7e99971ba2966e081b39cd8899a8ae8a2d8"
 
       def install
         bin.install "grafana-dups"
       end
     end
     on_arm do
-      url "https://github.com/DoodleScheduling/grafana-dups/releases/download/v0.0.1/grafana-dups_0.0.1_darwin_arm64.tar.gz"
-      sha256 "06d37218d692268c1fe3981c4dbce22d4e06202bb83e316f51bed0c4967b1f16"
+      url "https://github.com/DoodleScheduling/grafana-dups/releases/download/v0.0.2/grafana-dups_0.0.2_darwin_arm64.tar.gz"
+      sha256 "04846e10d9ee1ed3173155bf40fbf1ae7124256f5cf9d918bfd42685a904b0d2"
 
       def install
         bin.install "grafana-dups"
@@ -29,8 +29,8 @@ class GrafanaDups < Formula
   on_linux do
     on_intel do
       if Hardware::CPU.is_64_bit?
-        url "https://github.com/DoodleScheduling/grafana-dups/releases/download/v0.0.1/grafana-dups_0.0.1_linux_amd64.tar.gz"
-        sha256 "0bff98fd2d2815094b12cb6741ffc09eb3641323ee7a90523365fb1f3b964808"
+        url "https://github.com/DoodleScheduling/grafana-dups/releases/download/v0.0.2/grafana-dups_0.0.2_linux_amd64.tar.gz"
+        sha256 "1b43c01a0b29469c2e3ffc2af544c897e66a8d644a1ffeeaf2ec204bf500de90"
 
         def install
           bin.install "grafana-dups"
@@ -39,8 +39,8 @@ class GrafanaDups < Formula
     end
     on_arm do
       if Hardware::CPU.is_64_bit?
-        url "https://github.com/DoodleScheduling/grafana-dups/releases/download/v0.0.1/grafana-dups_0.0.1_linux_arm64.tar.gz"
-        sha256 "2a08002a2908d57a05fc33cf810c2378b39d932a5143158bf74832faff5c48be"
+        url "https://github.com/DoodleScheduling/grafana-dups/releases/download/v0.0.2/grafana-dups_0.0.2_linux_arm64.tar.gz"
+        sha256 "7f8ec5289241d2acb05f651ada23367aa3d49fdcec46e072613a3e60b74a1f85"
 
         def install
           bin.install "grafana-dups"
