@@ -93,30 +93,30 @@ func main() {
 		logger.V(1).Info("check resource", "gvk", gvk.String())
 
 		if gvk.Kind == "ConfigMap" && gvk.Group == "" && gvk.Version == "v1" {
-			logger.V(1).Info("validate configmap", "gvk", gvk.String())
+			logger.V(1).Info("validate configmap", "name", obj.Name, "namespace", obj.Namespace)
 
 			if len(config.LabelSelector) > 0 && !matches(obj.Labels, selector) {
-				logger.V(1).Info("skip resource, not matching label selector", "gvk", gvk.String())
+				logger.V(1).Info("skip resource, not matching label selector", "name", obj.Name, "namespace", obj.Namespace)
 				continue
 			}
 
 			for _, v := range obj.Data {
 				d := &dashboard{}
 				if err := json.Unmarshal([]byte(v), d); err != nil {
-					must(err)
+					must(fmt.Errorf("failed unmarshal dashboard %s.%s: %w", obj.Name, obj.Namespace, err))
 				}
 
 				if name, ok := obj.Annotations[config.FolderAnnotation]; ok {
 					d.Folder = name
-					logger.V(1).Info("found folder annotation", "folder", name, "gvk", gvk.String())
+					logger.V(1).Info("found folder annotation", "folder", name, "name", obj.Name, "namespace", obj.Namespace)
 				}
 
 				if hasUid(d.Uid) {
-					must(fmt.Errorf("duplicate uid `%s` found", d.Uid))
+					must(fmt.Errorf("duplicate uid `%s` found in %s.%s", d.Uid, obj.Name, obj.Namespace))
 				}
 
 				if hasTitle(d.Title, d.Folder) {
-					must(fmt.Errorf("duplicate name/folder `%s (%s)` found", d.Title, d.Folder))
+					must(fmt.Errorf("duplicate name/folder `%s (%s)` found in %s.%s", d.Title, d.Folder, obj.Name, obj.Namespace))
 				}
 
 				dashboards = append(dashboards, d)
